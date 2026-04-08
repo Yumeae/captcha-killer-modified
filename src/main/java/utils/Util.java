@@ -152,7 +152,7 @@ public class Util {
 
 
     public static byte[] dataimgToimg(String str_img,String words) throws IOException {
-        String pattern = "(" + words + ".*?)[,&}/+=\\w]+";
+        String pattern = "(" + Pattern.quote(words) + ".*?)[,&}/+=\\w]+";
         str_img = str_img.replace("\\r\\n","");
         str_img = str_img.replace("\\n","").replace("\\","");
         str_img = str_img.replace("_","/").replace("-","+");

@@ -877,10 +877,36 @@ public class GUI {
                     } else if (Util.isImage(new String(gui.byteRes))) {
                         BurpExtender.gui.byteImg = dataimgToimg(new String(gui.byteRes));
                     } else {
-                        gui.lbImage.setIcon(null);
-                        gui.lbImage.setText("获取到的不是图片文件或者未设置关键词！");
-                        gui.lbImage.setForeground(Color.RED);
-                        return;
+                        // Try to handle token|base64image format (e.g. "captcha_id|/9j/4AAQ...")
+                        String bodyStr = new String(gui.byteRes);
+                        int pipeIndex = bodyStr.indexOf('|');
+                        if (pipeIndex != -1) {
+                            String afterPipe = bodyStr.substring(pipeIndex + 1).trim();
+                            byte[] imgBytes = dataimgToimg(afterPipe);
+                            if (Util.isImage(imgBytes)) {
+                                BurpExtender.gui.byteImg = imgBytes;
+                                // Auto-extract token from the part before '|' if token field is empty
+                                if (token.trim().equals("")) {
+                                    gui.tokenwords = bodyStr.substring(0, pipeIndex).trim();
+                                    if (gui.tokenwords.length() > 40) {
+                                        gui.tokenword = gui.tokenwords.substring(0, 10) + "...." + gui.tokenwords.substring(gui.tokenwords.length() - 10, gui.tokenwords.length());
+                                        gui.tfTokenex.setText(gui.tokenword);
+                                    } else {
+                                        gui.tfTokenex.setText(gui.tokenwords);
+                                    }
+                                }
+                            } else {
+                                gui.lbImage.setIcon(null);
+                                gui.lbImage.setText("获取到的不是图片文件或者未设置关键词！");
+                                gui.lbImage.setForeground(Color.RED);
+                                return;
+                            }
+                        } else {
+                            gui.lbImage.setIcon(null);
+                            gui.lbImage.setText("获取到的不是图片文件或者未设置关键词！");
+                            gui.lbImage.setForeground(Color.RED);
+                            return;
+                        }
                     }
                 }
                 stdout.println( "get:" + Arrays.toString(BurpExtender.gui.byteImg).length());
